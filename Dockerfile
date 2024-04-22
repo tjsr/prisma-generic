@@ -6,7 +6,7 @@ ARG PRISMA_VERSION=5.12.1
 
 WORKDIR /opt/migrator
 RUN npm init --force && \
-  npm install prisma@${PRISMA_VERSION} 1@prisma/client@${PRISMA_VERSION} @prisma/engines@${PRISMA_VERSION}
+  npm install prisma@${PRISMA_VERSION} @prisma/client@${PRISMA_VERSION} @prisma/engines@${PRISMA_VERSION}
 
 ENV PATH="${PATH}:/opt/migrator/node_modules/.bin"
 
