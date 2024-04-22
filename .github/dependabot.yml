@@ -1,0 +1,17 @@
+version: 2
+registries:
+  npm-npmjs:
+    type: npm-registry
+    url: https://registry.npmjs.org
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    registries:
+    - npm-npmjs
+    schedule:
+      interval: 'weekly'
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # Check for updates to GitHub Actions every week
+      interval: "weekly"
