@@ -4,8 +4,12 @@ ARG NPM_VERSION=10.8.1
 FROM ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} as prisma-build
 ARG PRISMA_VERSION=5.16.1
 
+RUN --mount=type=cache,target=/root/.npm mkdir /opt/tagtool && \
+  npm config set fund false --location=global && \
+  npm config set update-notifier false --location=global
+
 WORKDIR /opt/migrator
-RUN npm init --force && \
+RUN --mount=type=cache,target=/root/.npm npm init --force && \
   npm install prisma@${PRISMA_VERSION} @prisma/client@${PRISMA_VERSION} @prisma/engines@${PRISMA_VERSION}
 
 ENV PATH="${PATH}:/opt/migrator/node_modules/.bin"

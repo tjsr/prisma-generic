@@ -4,6 +4,7 @@
   "description": "A generic prisma image for running migrations",
   "main": "index.js",
   "scripts": {
+    "docker:build": "docker build -t prisma-generic -f Dockerfile .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
