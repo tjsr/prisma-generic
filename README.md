@@ -20,4 +20,4 @@ FROM ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${
 ARG PRISMA_VERSION=5.16.1
 ```
 
-From time-to-time I'll update the base container images available.  See https://github.com/tjsr/node_patched_npm for the qavailable releases.  These are the base images I use for the majority of my containerised builds and deployments.
+From time-to-time I'll update the base container images available.  See https://github.com/tjsr/node_patched_npm for the available releases.  These are the base images I use for the majority of my containerised builds and deployments.
