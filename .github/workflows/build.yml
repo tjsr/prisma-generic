@@ -26,14 +26,8 @@ jobs:
       run: |
         PRISMA_VERSION=$(jq -r '.. | objects | select(has("node_modules/prisma")) | ."node_modules/prisma".version' package-lock.json)
         echo "PRISMA_VERSION=$PRISMA_VERSION" >> $GITHUB_OUTPUT
-
-    - name: Cache Docker layers
-      uses: actions/cache@v4
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-single-buildx
-        restore-keys: |
-          ${{ runner.os }}-single-buildx
+        echo "ECR_IMAGE_HASH=${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.PRISMA_IMAGE }}" >> $GITHUB_OUTPUT
+        echo "ECR_IMAGE_VERSION=${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.IMAGE_NAME }}:${{ steps.get-prisma-version.outputs.PRISMA_VERSION }}" >> $GITHUB_OUTPUT
 
     - name: Login to Amazon ECR Public
       id: login-ecr-public
@@ -54,7 +48,7 @@ jobs:
         file: Dockerfile
         push: ${{ github.actor != 'dependabot[bot]' }}
         tags: |
-          ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.PRISMA_IMAGE }}
-          ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.IMAGE_NAME }}:${{ steps.get-prisma-version.outputs.PRISMA_VERSION }}
+          ${{ steps.get-prisma-version.outputs.ECR_IMAGE_HASH }}
+          ${{ steps.get-prisma-version.outputs.ECR_IMAGE_VERSION }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
