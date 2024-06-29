@@ -53,3 +53,16 @@ jobs:
         tags: ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.PRISMA_IMAGE }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new
+    
+    - name: Tag image as latest Docker version
+      if: ${{ github.actor != 'dependabot[bot]' }}
+      run: |
+          PRISMA_VERSION="${{ steps.get-prisma-version.outputs.version }}"
+          ECR_HASH_VERSION="${{ format('{0}/', steps.login-ecr-public.outputs.registry) }}${{ env.PRISMA_IMAGE }}"
+          ECR_PRISMA_VERSION="${{ format('{0}/', steps.login-ecr-public.outputs.registry) }}tjsrowe/prisma-generic:$PRISMA_VERSION"
+
+          echo "Version: $PRISMA_VERSION"
+          echo "ECR_HASH_VERSION: $ECR_HASH_VERSION"
+          echo "ECR_VERSION: $ECR_VERSION"
+
+          echo docker tag $ECR_HASH_VERSION $ECR_PRISMA_VERSION
