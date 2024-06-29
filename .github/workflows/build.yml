@@ -7,6 +7,7 @@ jobs:
     env:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      IMAGE_NAME: tjsrowe/prisma-generic
       PRISMA_IMAGE: tjsrowe/prisma-generic:${{ github.sha }}
 
     steps:
@@ -46,22 +47,14 @@ jobs:
         registry-type: public
 
     - name: Build prisma image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: .
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile
         push: ${{ github.actor != 'dependabot[bot]' }}
-        tags: ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.PRISMA_IMAGE }}
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache-new
-    
-    - name: Tag image as latest Docker version
-      if: ${{ github.actor != 'dependabot[bot]' }}
-      run: |
-        PRISMA_VERSION="${{ steps.get-prisma-version.outputs.PRISMA_VERSION }}"
-        ECR_HASH_VERSION="${{ format('{0}/', steps.login-ecr-public.outputs.registry) }}${{ env.PRISMA_IMAGE }}"
-        ECR_PRISMA_VERSION="${{ format('{0}/', steps.login-ecr-public.outputs.registry) }}tjsrowe/prisma-generic:$PRISMA_VERSION"
-
-        docker tag $ECR_HASH_VERSION $ECR_PRISMA_VERSION
-        docker push $ECR_PRISMA_VERSION
+        tags: |
+          ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.PRISMA_IMAGE }}
+          ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.IMAGE_NAME }}:$PRISMA_VERSION
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
