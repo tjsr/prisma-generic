@@ -22,7 +22,9 @@ jobs:
 
     - name: Get the current version of Prisma
       id: get-prisma-version
-      run: echo ::set-output name=version::$(PRISMA_VERSION=$(jq -r '.. | objects | select(has("node_modules/prisma")) | ."node_modules/prisma".version' package-lock.json))
+      run: |
+        PRISMA_VERSION=$(jq -r '.. | objects | select(has("node_modules/prisma")) | ."node_modules/prisma".version' package-lock.json)
+        echo "PRISMA_VERSION=$PRISMA_VERSION" >> $GITHUB_OUTPUT
 
     - name: Cache Docker layers
       uses: actions/cache@v4
@@ -57,7 +59,7 @@ jobs:
     - name: Tag image as latest Docker version
       if: ${{ github.actor != 'dependabot[bot]' }}
       run: |
-          PRISMA_VERSION="${{ steps.get-prisma-version.outputs.version }}"
+          PRISMA_VERSION="${{ steps.get-prisma-version.outputs.PRISMA_VERSION }}"
           ECR_HASH_VERSION="${{ format('{0}/', steps.login-ecr-public.outputs.registry) }}${{ env.PRISMA_IMAGE }}"
           ECR_PRISMA_VERSION="${{ format('{0}/', steps.login-ecr-public.outputs.registry) }}tjsrowe/prisma-generic:$PRISMA_VERSION"
 
