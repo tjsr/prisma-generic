@@ -7,7 +7,7 @@ ARG PRISMA_VERSION=5.16.1
 LABEL org.opencontainers.image.title="prisma-generic"
 LABEL org.opencontainers.image.description="Prisma CLI and Migrate"
 LABEL org.opencontainers.image.source="https://github.com/tjsr/prisma-generic"
-LABEL org.opencontainers.image.authors="Tim Rowe <tim@tjsr.id.au>""
+LABEL org.opencontainers.image.authors="Tim Rowe <tim@tjsr.id.au>"
 LABEL org.opencontainers.image.documentation="https://github.com/tjsr/prisma-generic/blob/main/README.md"
 LABEL org.opencontainers.image.base.name="ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION}"
 
