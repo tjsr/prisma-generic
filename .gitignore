@@ -1,2 +1,3 @@
 Dockerfile.prisma.orig
 node_modules
+test*.bat
