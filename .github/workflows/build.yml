@@ -32,7 +32,7 @@ jobs:
       with:
         registry-type: public
 
-    - name: Get the current version of Prisma
+    - name: Get the current version of Prisma from package.json
       id: get-prisma-version
       env:
         REGISTRY_PREFIX: ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}
@@ -46,7 +46,7 @@ jobs:
         echo "ECR_IMAGE_HASH=${{ env.REGISTRY_PREFIX }}$IMAGE_NAME_HASH" >> $GITHUB_OUTPUT
         echo "ECR_IMAGE_VERSION=${{ env.REGISTRY_PREFIX }}$IMAGE_NAME_VERSION" >> $GITHUB_OUTPUT
   
-    - name: Build prisma image
+    - name: Build and push prisma image to ECR Public
       uses: docker/build-push-action@v6
       env:
         ECR_IMAGE_HASH: ${{ steps.get-prisma-version.outputs.ECR_IMAGE_HASH }}
