@@ -4,7 +4,7 @@ This is a generic alpine Docker image for running prisma migrations within a con
 
 ## About this container image
 
-The container image is built on a recent node alpine image with an updated npm.  While I looked at using debian distroless, it turned out theat node-alpine was actually 40MB smaller after having node/npm/prisma installed!
+The container image is built on a recent node alpine image with an updated npm, and then has npm stripped out for the runnable image.  While I looked at using debian distroless, it turned out theat node-alpine was actually 40MB smaller after having node/npm/prisma installed!
 
 ## Building
 
@@ -16,8 +16,8 @@ It takes a few values, which are passed to the base image.
 ARG NODE_VERSION=20.15.0
 ARG ALPINE_VERSION=3.20
 ARG NPM_VERSION=10.8.1
-FROM ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} as prisma-build
+FROM ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} AS prisma-build
 ARG PRISMA_VERSION=5.16.1
 ```
 
-From time-to-time I'll update the base container images available.  See https://github.com/tjsr/node_patched_npm for the available releases.  These are the base images I use for the majority of my containerised builds and deployments.
+From time-to-time I'll update the base container images available.  See [node_patched_npm](https://github.com/tjsr/node_patched_npm) for the available releases.  These are the base images I use for the majority of my containerised builds and deployments.
