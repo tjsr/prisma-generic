@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "docker:build": "docker build -t prisma-generic -f Dockerfile .",
+    "docker:run": "docker run --name prisma-generic --rm -it prisma-generic",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
