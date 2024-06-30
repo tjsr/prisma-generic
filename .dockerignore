@@ -1,0 +1,7 @@
+.github
+node_modules
+.gitignore
+docker-compose.yml
+Dockerfile.prisma
+README.md
+test*.bat

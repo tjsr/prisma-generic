@@ -7,6 +7,7 @@ jobs:
     env:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      IMAGE_NAME: tjsrowe/prisma-generic
       PRISMA_IMAGE: tjsrowe/prisma-generic:${{ github.sha }}
 
     steps:
@@ -20,18 +21,6 @@ jobs:
     - name: Install jq
       run: sudo apt-get install jq
 
-    - name: Get the current version of Prisma
-      id: get-prisma-version
-      run: echo ::set-output name=version::$(PRISMA_VERSION=$(jq -r '.. | objects | select(has("node_modules/prisma")) | ."node_modules/prisma".version' package-lock.json))
-
-    - name: Cache Docker layers
-      uses: actions/cache@v4
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-single-buildx
-        restore-keys: |
-          ${{ runner.os }}-single-buildx
-
     - name: Login to Amazon ECR Public
       id: login-ecr-public
       if: ${{ github.actor != 'dependabot[bot]' }}
@@ -43,13 +32,32 @@ jobs:
       with:
         registry-type: public
 
-    - name: Build prisma image
-      uses: docker/build-push-action@v5
+    - name: Get the current version of Prisma from package.json
+      id: get-prisma-version
+      env:
+        REGISTRY_PREFIX: ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}
+      run: |
+        PRISMA_VERSION=$(jq -r '.. | objects | select(has("node_modules/prisma")) | ."node_modules/prisma".version' package-lock.json)
+        IMAGE_NAME_HASH=${{ env.IMAGE_NAME }}:${{ github.sha }}
+        IMAGE_NAME_VERSION=${{ env.IMAGE_NAME }}:$PRISMA_VERSION
+
+        echo "PRISMA_VERSION=$PRISMA_VERSION" >> $GITHUB_OUTPUT
+
+        echo "ECR_IMAGE_HASH=${{ env.REGISTRY_PREFIX }}$IMAGE_NAME_HASH" >> $GITHUB_OUTPUT
+        echo "ECR_IMAGE_VERSION=${{ env.REGISTRY_PREFIX }}$IMAGE_NAME_VERSION" >> $GITHUB_OUTPUT
+  
+    - name: Build and push prisma image to ECR Public
+      uses: docker/build-push-action@v6
+      env:
+        ECR_IMAGE_HASH: ${{ steps.get-prisma-version.outputs.ECR_IMAGE_HASH }}
+        ECR_IMAGE_VERSION: ${{ steps.get-prisma-version.outputs.ECR_IMAGE_VERSION }}
       with:
         context: .
         builder: ${{ steps.buildx.outputs.name }}
         file: Dockerfile
         push: ${{ github.actor != 'dependabot[bot]' }}
-        tags: ${{ github.actor != 'dependabot[bot]' && format('{0}/', steps.login-ecr-public.outputs.registry) || ''}}${{ env.PRISMA_IMAGE }}
-        cache-from: type=local,src=/tmp/.buildx-cache
-        cache-to: type=local,dest=/tmp/.buildx-cache-new
+        tags: |
+          ${{ env.ECR_IMAGE_HASH }}
+          ${{ env.ECR_IMAGE_VERSION }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
