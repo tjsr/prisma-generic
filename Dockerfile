@@ -14,7 +14,7 @@ LABEL org.opencontainers.image.base.name="ghcr.io/tjsr/node_patched_npm:${NODE_V
 RUN mkdir /opt/migrator
 
 WORKDIR /opt/migrator
-RUN --mount=type=cache,target=/root/.npm npm init --force && \
+RUN npm init --force && \
   npm install prisma@${PRISMA_VERSION} @prisma/client@${PRISMA_VERSION} @prisma/engines@${PRISMA_VERSION}
 
 FROM node:20.15.0-alpine3.20 as prisma-migrate
