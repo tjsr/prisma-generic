@@ -19,11 +19,11 @@ If you want to build this container image locally, just use `docker build -t pri
 It takes a few values, which are passed to the base image.
 
 ```docker
-ARG NODE_VERSION=20.15.0
+ARG NODE_VERSION=20.18.0
 ARG ALPINE_VERSION=3.20
-ARG NPM_VERSION=10.8.1
+ARG NPM_VERSION=10.9.0
 FROM ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} AS prisma-build
-ARG PRISMA_VERSION=5.16.1
+ARG PRISMA_VERSION=5.20.0
 ```
 
 From time-to-time I'll update the base container images available.  See [node_patched_npm](https://github.com/tjsr/node_patched_npm) for the available releases.  These are the base images I use for the majority of my containerised builds and deployments.

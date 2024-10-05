@@ -26,6 +26,6 @@
   },
   "homepage": "https://github.com/tjsr/prisma-generic#readme",
   "devDependencies": {
-    "prisma": "^5.16.1"
+    "prisma": "^5.20.0"
   }
 }
