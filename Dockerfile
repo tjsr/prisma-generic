@@ -3,6 +3,8 @@ ARG ALPINE_VERSION=3.22
 ARG NPM_VERSION=11.6.0
 FROM ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} AS prisma-build
 ARG PRISMA_VERSION=6.15.0
+ARG ALPINE_VERSION=3.22
+ARG NPM_VERSION=11.6.0
 
 LABEL org.opencontainers.image.title="prisma-generic"
 LABEL org.opencontainers.image.description="Prisma CLI and Migrate"
@@ -17,7 +19,7 @@ WORKDIR /opt/migrator
 RUN --mount=type=cache,target=/root/.npm npm init --force && \
   npm install prisma@${PRISMA_VERSION} @prisma/client@${PRISMA_VERSION} @prisma/engines@${PRISMA_VERSION}
 
-FROM node:22.19.0-alpine3.22 as prisma-migrate
+FROM node:22.19.0-alpine3.22 AS prisma-migrate
 
 WORKDIR /opt/migrator
 COPY --from=prisma-build /opt/migrator/node_modules /opt/migrator/node_modules
