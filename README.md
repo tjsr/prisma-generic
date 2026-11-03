@@ -10,20 +10,27 @@ The default command this container will run is the migrate process, `prisma migr
 
 ## About this container image
 
-The container image is built on a recent node alpine image with an updated npm, and then has npm stripped out for the runnable image.  While I looked at using debian distroless, it turned out theat node-alpine was actually 40MB smaller after having node/npm/prisma installed!
+The container image is built on a recent node alpine image with an updated npm, and installs the locked Prisma CLI, client and engines.  While I looked at using debian distroless, it turned out theat node-alpine was actually 40MB smaller after having node/npm/prisma installed!
 
 ## Building
 
 If you want to build this container image locally, just use `docker build -t prisma-generic .`
 
-It takes a few values, which are passed to the base image.
+The image installs dependencies with `npm ci` from `package-lock.json`. The Prisma
+version in the image and the published version tag both come from that lockfile;
+there is no separate `PRISMA_VERSION` build argument to keep in sync.
 
-```docker
-ARG NODE_VERSION=22.19.0
-ARG ALPINE_VERSION=3.22
-ARG NPM_VERSION=11.6.0
-FROM ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} AS prisma-build
-ARG PRISMA_VERSION=6.15.0
-```
+Both build and runtime stages share the official Node Alpine base. Defaults are
+Node 24.22.2, Alpine 3.23 and npm 12.2.1. You can override `NODE_VERSION`,
+`ALPINE_VERSION` and `NPM_VERSION` with Docker build arguments. CI also verifies
+Node 22.23.4 with npm 12.2.1.
 
-From time-to-time I'll update the base container images available.  See [node_patched_npm](https://github.com/tjsr/node_patched_npm) for the available releases.  These are the base images I use for the majority of my containerised builds and deployments.
+Run `npm ci && npm test` to check the local install. After building an image, run
+`PRISMA_TEST_IMAGE=prisma-generic npm test` to verify its installed Prisma version
+and deploy a temporary SQLite migration with container networking disabled.
+These tests create no external databases.
+
+Pull requests, branch pushes and manual workflow runs build and test without
+logging into a registry or pushing images. Only successful pushes to `main`
+publish the verified Node 24 image to ECR Public, tagged with the commit SHA and
+the locked Prisma version.

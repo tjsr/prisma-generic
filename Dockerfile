@@ -1,34 +1,38 @@
-ARG NODE_VERSION=22.19.0
-ARG ALPINE_VERSION=3.22
-ARG NPM_VERSION=11.6.0
-FROM ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION} AS prisma-build
-ARG PRISMA_VERSION=6.15.0
-ARG ALPINE_VERSION=3.22
-ARG NPM_VERSION=11.6.0
+# syntax=docker/dockerfile:1
+ARG NODE_VERSION=24.22.2
+ARG ALPINE_VERSION=3.23
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS prisma-base
+ARG NPM_VERSION=12.2.1
+
+# The optional CA is used only by managed build environments with an HTTPS proxy.
+RUN --mount=type=secret,id=proxy_ca \
+    --mount=type=cache,target=/root/.npm \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    set -eu; \
+    npm install --global "npm@${NPM_VERSION}"
+
+FROM prisma-base AS prisma-build
+WORKDIR /opt/migrator
+COPY package.json package-lock.json ./
+RUN --mount=type=secret,id=proxy_ca \
+    --mount=type=cache,target=/root/.npm \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    npm ci --include=dev --no-audit --no-fund
+
+FROM prisma-base AS prisma-migrate
+ARG NODE_VERSION
+ARG ALPINE_VERSION
 
 LABEL org.opencontainers.image.title="prisma-generic"
 LABEL org.opencontainers.image.description="Prisma CLI and Migrate"
 LABEL org.opencontainers.image.source="https://github.com/tjsr/prisma-generic"
 LABEL org.opencontainers.image.authors="Tim Rowe <tim@tjsr.id.au>"
 LABEL org.opencontainers.image.documentation="https://github.com/tjsr/prisma-generic/blob/main/README.md"
-LABEL org.opencontainers.image.base.name="ghcr.io/tjsr/node_patched_npm:${NODE_VERSION}-alpine${ALPINE_VERSION}-npm${NPM_VERSION}"
-
-RUN mkdir /opt/migrator
+LABEL org.opencontainers.image.base.name="node:${NODE_VERSION}-alpine${ALPINE_VERSION}"
 
 WORKDIR /opt/migrator
-RUN --mount=type=cache,target=/root/.npm npm init --force && \
-  npm install prisma@${PRISMA_VERSION} @prisma/client@${PRISMA_VERSION} @prisma/engines@${PRISMA_VERSION}
-
-FROM node:22.19.0-alpine3.22 AS prisma-migrate
-
-WORKDIR /opt/migrator
-COPY --from=prisma-build /opt/migrator/node_modules /opt/migrator/node_modules
-
+COPY --from=prisma-build /opt/migrator/node_modules ./node_modules
 ENV PATH="${PATH}:/opt/migrator/node_modules/.bin"
 
-# Then mount the prisma directory from the host to the container at /opt/migrator/prisma
-# Alternatively, copy your prisma files directly with the COPY command below.
-# COPY prisma /opt/migrator
-
+# Mount the schema and migrations at /opt/migrator/prisma.
 CMD ["prisma", "migrate", "deploy"]
-
